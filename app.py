@@ -61,6 +61,9 @@ with tab1:
         st.subheader("📥 إدخال المحتوى")
         input_type = st.radio("اختر طريقة الإدخال:", ["رابط مقال (URL)", "نص مباشر"])
         
+        if 'scraped_content' not in st.session_state:
+            st.session_state.scraped_content = ""
+
         content_input = ""
         if input_type == "رابط مقال (URL)":
             url = st.text_input("أدخل رابط المقال هنا:")
@@ -69,10 +72,14 @@ with tab1:
                     resp = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})
                     soup = BeautifulSoup(resp.text, 'html.parser')
                     paragraphs = soup.find_all('p')
-                    content_input = "\n".join([p.get_text() for p in paragraphs])
+                    st.session_state.scraped_content = "\n".join([p.get_text() for p in paragraphs])
                     st.success("تم جلب المقال بنجاح!")
                 except Exception as e:
                     st.error(f"خطأ في جلب الرابط: {e}")
+            
+            if st.session_state.scraped_content:
+                st.text_area("المحتوى المجلب:", value=st.session_state.scraped_content, height=150, disabled=True)
+                content_input = st.session_state.scraped_content
         else:
             content_input = st.text_area("ألصق المقال أو النص هنا:", height=200)
             
